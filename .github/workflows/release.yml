@@ -55,22 +55,86 @@ jobs:
       run: |
         VERSION=${{ steps.version.outputs.version }}
         
-        # Get the section for this version
+        # Get the section for this version from CHANGELOG
         NOTES=$(awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | sed '1d;$d')
         
         if [ -z "$NOTES" ]; then
-          NOTES="Release version ${VERSION}"
+          NOTES="Release version ${VERSION}
+
+See [CHANGELOG.md](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md) for details."
         fi
         
-        # Save to file for GitHub release
-        echo "$NOTES" > /tmp/release_notes.md
+        # Create release notes with header and footer
+        cat > /tmp/release_notes.md << 'EOF'
+        # NexiScope Jenkins Plugin
         
-        echo "📝 Release notes extracted"
+        Official Jenkins plugin for real-time CI/CD observability with the NexiScope Platform.
+        
+        ---
+        
+        EOF
+        
+        echo "$NOTES" >> /tmp/release_notes.md
+        
+        cat >> /tmp/release_notes.md << 'EOF'
+        
+        ---
+        
+        ## 📦 Installation
+        
+        ### Via Jenkins UI
+        1. Download `nexiscope-integration-VERSION.hpi` from the assets below
+        2. Go to **Manage Jenkins** → **Manage Plugins** → **Advanced**
+        3. Upload the `.hpi` file under "Upload Plugin"
+        4. Restart Jenkins when prompted
+        
+        ### Via Jenkins CLI
+        ```bash
+        java -jar jenkins-cli.jar -s http://your-jenkins-url/ install-plugin nexiscope-integration-VERSION.hpi
+        ```
+        
+        ## 📚 Documentation
+        
+        - 📖 [User Guide](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/USER_GUIDE.md)
+        - 🔧 [Developer Guide](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/DEVELOPER_GUIDE.md)
+        - 🏗️ [Architecture](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/ARCHITECTURE.md)
+        - 📋 [API Reference](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/API_REFERENCE.md)
+        - 🔒 [Security Policy](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/SECURITY.md)
+        
+        ## 🔐 Checksums
+        
+        SHA256 checksums are provided for all artifacts. Verify downloads with:
+        ```bash
+        sha256sum -c nexiscope-integration-VERSION.hpi.sha256
+        ```
+        
+        ## 📋 Requirements
+        
+        - **Jenkins**: 2.528.3 or later
+        - **Java**: 21 or later
+        - **NexiScope Platform**: Active account required
+        
+        ## 🆘 Support
+        
+        - 💬 [Discussions](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/discussions)
+        - 🐛 [Report Issues](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/issues)
+        - 📧 [Email Support](mailto:support@nexiscope.com)
+        - 📚 [Documentation](https://docs.nexiscope.com/jenkins-plugin)
+        
+        ---
+        
+        **Full Changelog**: https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md
+        EOF
+        
+        # Replace VERSION placeholder with actual version
+        sed -i "s/VERSION/$VERSION/g" /tmp/release_notes.md
+        
+        echo "📝 Release notes created with full details"
     
     - name: 🚀 Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        name: Release v${{ steps.version.outputs.version }}
+        name: NexiScope Jenkins Plugin v${{ steps.version.outputs.version }}
         body_path: /tmp/release_notes.md
         files: |
           target/nexiscope-integration-${{ steps.version.outputs.version }}.hpi
@@ -79,6 +143,7 @@ jobs:
           target/nexiscope-integration-${{ steps.version.outputs.version }}.jar.sha256
         draft: false
         prerelease: false
+        generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
