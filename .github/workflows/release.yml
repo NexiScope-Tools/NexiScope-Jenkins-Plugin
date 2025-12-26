@@ -12,125 +12,145 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
     - name: ☕ Set up JDK 21
       uses: actions/setup-java@v4
       with:
         java-version: '21'
         distribution: 'temurin'
         cache: 'maven'
-    
+
     - name: 🏷️ Get version from tag
       id: version
       run: |
         VERSION=${GITHUB_REF#refs/tags/v}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "📋 Version: $VERSION"
-    
+
     - name: 🔨 Build plugin
       run: mvn clean package -DskipTests
-    
+
     - name: 📦 Prepare release artifacts
       run: |
         cd target
         VERSION=${{ steps.version.outputs.version }}
         cp nexiscope-integration.hpi nexiscope-integration-${VERSION}.hpi
         cp nexiscope-integration.jar nexiscope-integration-${VERSION}.jar
-        
+
         # Create checksums
         sha256sum nexiscope-integration-${VERSION}.hpi > nexiscope-integration-${VERSION}.hpi.sha256
         sha256sum nexiscope-integration-${VERSION}.jar > nexiscope-integration-${VERSION}.jar.sha256
-        
+
         echo "✅ Release artifacts prepared"
         ls -lh nexiscope-integration-${VERSION}.*
-    
+
     - name: 📝 Extract release notes
       id: release_notes
       run: |
         VERSION=${{ steps.version.outputs.version }}
-        
-        # Get the section for this version from CHANGELOG
-        NOTES=$(awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | sed '1d;$d')
-        
-        if [ -z "$NOTES" ]; then
-          NOTES="Release version ${VERSION}
-        
-        See [CHANGELOG.md](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md) for details."
+
+        echo "🔍 Extracting release notes for version ${VERSION}"
+        echo "📄 Checking CHANGELOG.md..."
+
+        if [ ! -f "CHANGELOG.md" ]; then
+          echo "❌ ERROR: CHANGELOG.md not found!"
+          exit 1
         fi
-        
+
+        # Show what we're looking for
+        echo "🔎 Looking for: ## [${VERSION}]"
+        grep -n "## \[${VERSION}\]" CHANGELOG.md || echo "⚠️  Version header not found in CHANGELOG"
+
+        # Get the section for this version from CHANGELOG
+        # Extract from version header to next version header (or end of file)
+        NOTES=$(awk "/## \[${VERSION}\]/,/^## \[.*\]/ {
+          if (/^## \[${VERSION}\]/) next;
+          if (/^## \[.*\]/) exit;
+          print
+        }" CHANGELOG.md)
+
+        if [ -z "$NOTES" ]; then
+          echo "⚠️  No release notes found for version ${VERSION}, using fallback"
+          NOTES="Release version ${VERSION}
+
+See [CHANGELOG.md](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md) for details."
+        else
+          echo "✅ Successfully extracted release notes ($(echo "$NOTES" | wc -l) lines)"
+        fi
+
         # Create release notes with header and footer
         cat > /tmp/release_notes.md << 'EOF'
-        # NexiScope Jenkins Plugin
-        
-        Official Jenkins plugin for real-time CI/CD observability with the NexiScope Platform.
-        
-        ---
-        
-        EOF
-        
+# NexiScope Jenkins Plugin
+
+Official Jenkins plugin for real-time CI/CD observability with the NexiScope Platform.
+
+---
+
+EOF
+
         echo "$NOTES" >> /tmp/release_notes.md
-        
+
         cat >> /tmp/release_notes.md << 'EOF'
-        
+
         ---
-        
+
         ## 📦 Installation
-        
+
         ### Via Jenkins UI
         1. Download `nexiscope-integration-VERSION.hpi` from the assets below
         2. Go to **Manage Jenkins** → **Manage Plugins** → **Advanced**
         3. Upload the `.hpi` file under "Upload Plugin"
         4. Restart Jenkins when prompted
-        
+
         ### Via Jenkins CLI
         ```bash
         java -jar jenkins-cli.jar -s http://your-jenkins-url/ install-plugin nexiscope-integration-VERSION.hpi
         ```
-        
+
         ## 📚 Documentation
-        
+
         - 📖 [User Guide](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/USER_GUIDE.md)
         - 🔧 [Developer Guide](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/DEVELOPER_GUIDE.md)
         - 🏗️ [Architecture](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/ARCHITECTURE.md)
         - 📋 [API Reference](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/API_REFERENCE.md)
         - 🔒 [Security Policy](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/SECURITY.md)
-        
+
         ## 🔐 Checksums
-        
+
         SHA256 checksums are provided for all artifacts. Verify downloads with:
         ```bash
         sha256sum -c nexiscope-integration-VERSION.hpi.sha256
         ```
-        
+
         ## 📋 Requirements
-        
+
         - **Jenkins**: 2.528.3 or later
         - **Java**: 21 or later
         - **NexiScope Platform**: Active account required
-        
+
         ## 🆘 Support
-        
+
         - 💬 [Discussions](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/discussions)
         - 🐛 [Report Issues](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/issues)
         - 📧 [Email Support](mailto:support@nexiscope.com)
         - 📚 [Documentation](https://docs.nexiscope.com/jenkins-plugin)
-        
+
         ---
-        
+
         **Full Changelog**: https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md
         EOF
-        
+
         # Replace VERSION placeholder with actual version
         sed -i "s/VERSION/$VERSION/g" /tmp/release_notes.md
-        
+
         echo "📝 Release notes created with full details"
-    
+
     - name: 🚀 Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
@@ -146,7 +166,7 @@ jobs:
         generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
+
     - name: ✅ Release summary
       run: |
         echo "### 🚀 Release v${{ steps.version.outputs.version }} Published" >> $GITHUB_STEP_SUMMARY
