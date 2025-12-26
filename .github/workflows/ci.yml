@@ -13,8 +13,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  test:
-    name: Test
+  init:
+    name: Initialize
     runs-on: ubuntu-latest
     
     steps:
@@ -30,11 +30,65 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
     
-    - name: 🔍 Verify Maven version
-      run: mvn --version
+    - name: 🔍 Verify environment
+      run: |
+        echo "### 🔍 Environment Check" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Java Version:**" >> $GITHUB_STEP_SUMMARY
+        java -version 2>&1 | head -n 1 >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Maven Version:**" >> $GITHUB_STEP_SUMMARY
+        mvn --version | head -n 1 >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+    
+    - name: 🔍 Validate POM
+      run: mvn validate
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: init
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: ☕ Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+    
+    - name: 🔨 Compile sources
+      run: mvn clean compile -DskipTests
+    
+    - name: ✅ Build summary
+      run: |
+        echo "### ✅ Compilation Successful" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** Sources compiled successfully" >> $GITHUB_STEP_SUMMARY
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: ☕ Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
     
     - name: 🧪 Run tests
-      run: mvn clean test
+      run: mvn test
     
     - name: 📊 Publish test results
       if: always()
@@ -52,11 +106,9 @@ jobs:
           TESTS=$(find target/surefire-reports -name "TEST-*.xml" | wc -l)
           echo "**Test files:** $TESTS" >> $GITHUB_STEP_SUMMARY
         fi
-        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
 
-  build:
-    name: Build
+  package:
+    name: Package
     runs-on: ubuntu-latest
     needs: test
     
@@ -71,24 +123,20 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
     
-    - name: 🔨 Build plugin
-      run: mvn clean package -DskipTests
+    - name: 📦 Package plugin
+      run: mvn package -DskipTests
     
-    - name: ✅ Build summary
+    - name: ✅ Package summary
       run: |
-        echo "### ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Plugin built successfully**" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Package Created" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ -f "target/nexiscope-integration.hpi" ]; then
           SIZE=$(du -h target/nexiscope-integration.hpi | cut -f1)
-          echo "**Artifact size:** $SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "**Plugin size:** $SIZE" >> $GITHUB_STEP_SUMMARY
         fi
-        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
 
-  javadoc:
-    name: JavaDoc
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     needs: test
     
@@ -106,9 +154,9 @@ jobs:
     - name: 📚 Generate JavaDoc
       run: mvn javadoc:javadoc
     
-    - name: ✅ JavaDoc summary
+    - name: ✅ Validation summary
       run: |
-        echo "### 📚 JavaDoc Generated" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ Validation Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+        echo "**JavaDoc:** ✅ Generated successfully" >> $GITHUB_STEP_SUMMARY
 
