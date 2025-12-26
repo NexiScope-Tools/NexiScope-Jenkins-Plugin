@@ -19,55 +19,55 @@ jobs:
   bump-version:
     name: Bump Version
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
-    
+
     - name: ⚙️ Configure Git
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-    
+
     - name: 🔍 Validate version format
       run: |
         VERSION="${{ github.event.inputs.version }}"
         NEXT_VERSION="${{ github.event.inputs.next_version }}"
-        
+
         # Validate release version (e.g., 1.0.0)
         if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           echo "❌ Invalid version format: $VERSION"
           echo "Expected format: X.Y.Z (e.g., 1.0.0)"
           exit 1
         fi
-        
+
         # Validate next version ends with -SNAPSHOT
         if ! [[ "$NEXT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$ ]]; then
           echo "❌ Invalid next version format: $NEXT_VERSION"
           echo "Expected format: X.Y.Z-SNAPSHOT (e.g., 1.1.0-SNAPSHOT)"
           exit 1
         fi
-        
+
         echo "✅ Version formats are valid"
-    
+
     - name: 📝 Update POM to release version
       run: |
         VERSION="${{ github.event.inputs.version }}"
-        
+
         # Update version in pom.xml
         sed -i.bak "s|<version>.*</version>|<version>$VERSION</version>|" pom.xml
         rm pom.xml.bak
-        
+
         echo "✅ Updated pom.xml to version $VERSION"
-    
+
     - name: 📝 Update CHANGELOG
       run: |
         VERSION="${{ github.event.inputs.version }}"
         DATE=$(date +%Y-%m-%d)
-        
+
         # Add release date to CHANGELOG if it has [Unreleased]
         if grep -q "\[Unreleased\]" CHANGELOG.md; then
           sed -i.bak "s/\[Unreleased\]/[$VERSION] - $DATE/" CHANGELOG.md
@@ -76,65 +76,65 @@ jobs:
         else
           echo "ℹ️  No [Unreleased] section found in CHANGELOG.md"
         fi
-    
+
     - name: 💾 Commit release version
       run: |
         VERSION="${{ github.event.inputs.version }}"
-        
+
         git add pom.xml CHANGELOG.md
         git commit -m "chore: release version $VERSION" -m "[skip ci]"
-        
+
         echo "✅ Committed release version"
-    
+
     - name: 🏷️ Create and push tag
       run: |
         VERSION="${{ github.event.inputs.version }}"
-        
+
         # Create annotated tag
         git tag -a "v$VERSION" -m "Release v$VERSION" -m "See CHANGELOG.md for details."
-        
+
         # Push commit and tag
         git push origin main
         git push origin "v$VERSION"
-        
+
         echo "✅ Created and pushed tag v$VERSION"
-    
+
     - name: 📝 Update POM to next development version
       run: |
         NEXT_VERSION="${{ github.event.inputs.next_version }}"
-        
+
         # Update version in pom.xml
         sed -i.bak "s|<version>.*</version>|<version>$NEXT_VERSION</version>|" pom.xml
         rm pom.xml.bak
-        
+
         echo "✅ Updated pom.xml to version $NEXT_VERSION"
-    
+
     - name: 📝 Prepare CHANGELOG for next version
       run: |
         NEXT_VERSION="${{ github.event.inputs.next_version }}"
-        
+
         # Add new [Unreleased] section at the top
         sed -i.bak '0,/^## \[/s//## [Unreleased]\n\n### Added\n\n### Changed\n\n### Fixed\n\n&/' CHANGELOG.md
         rm CHANGELOG.md.bak
-        
+
         echo "✅ Added [Unreleased] section to CHANGELOG.md"
-    
+
     - name: 💾 Commit next development version
       run: |
         NEXT_VERSION="${{ github.event.inputs.next_version }}"
-        
+
         git add pom.xml CHANGELOG.md
         git commit -m "chore: prepare for next development iteration $NEXT_VERSION" -m "[skip ci]"
-        
+
         git push origin main
-        
+
         echo "✅ Committed next development version"
-    
+
     - name: ✅ Summary
       run: |
         VERSION="${{ github.event.inputs.version }}"
         NEXT_VERSION="${{ github.event.inputs.next_version }}"
-        
+
         echo "### 🚀 Version Bump Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Released Version:** $VERSION" >> $GITHUB_STEP_SUMMARY

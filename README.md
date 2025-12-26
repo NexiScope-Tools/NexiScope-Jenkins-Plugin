@@ -1,8 +1,8 @@
 <div align="center">
   <img src="assets/nexiscope.png" alt="NexiScope Logo" width="200"/>
   
-  # NexiScope Jenkins Plugin
-  
+# NexiScope Jenkins Plugin
+
   **Real-time CI/CD Observability for Jenkins**
   
   <p>
