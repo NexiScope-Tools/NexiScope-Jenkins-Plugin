@@ -66,12 +66,12 @@ jobs:
         # Show what we're looking for
         echo "🔎 Looking for: ## [${VERSION}]"
         grep -n "## \[${VERSION}\]" CHANGELOG.md || echo "⚠️  Version header not found in CHANGELOG"
-        
+
         # Get the section for this version from CHANGELOG
         # Extract from version header to next version header (or end of file)
         # The pattern handles both "## [VERSION]" and "## [VERSION] - DATE" formats
-        NOTES=$(awk "/^## \[${VERSION}\]/ { found=1; next } 
-                     found && /^## \[/ { exit } 
+        NOTES=$(awk "/^## \[${VERSION}\]/ { found=1; next }
+                     found && /^## \[/ { exit }
                      found { print }" CHANGELOG.md)
 
         if [ -z "$NOTES" ]; then
@@ -85,42 +85,34 @@ jobs:
 
         # Write release notes to file
         echo "$NOTES" > /tmp/release_notes.md
-        
+
         # Add installation instructions
         cat >> /tmp/release_notes.md << 'EOF'
-        
-        ---
-        
+
         ## 📦 Installation
-        
+
         ### Via Jenkins UI
         1. Download `nexiscope-integration-VERSION.hpi` from the assets below
         2. Go to **Manage Jenkins** → **Manage Plugins** → **Advanced**
         3. Upload the `.hpi` file under "Upload Plugin"
         4. Restart Jenkins when prompted
-        
+
         ### Via Jenkins CLI
         ```bash
         java -jar jenkins-cli.jar -s http://your-jenkins-url/ install-plugin nexiscope-integration-VERSION.hpi
         ```
-        
+
         ## 🔐 Checksums
-        
+
         SHA256 checksums are provided for all artifacts. Verify downloads with:
         ```bash
         sha256sum -c nexiscope-integration-VERSION.hpi.sha256
         ```
-        
-        ## 📋 Requirements
-        
-        - **Jenkins**: 2.528.3 or later
-        - **Java**: 21 or later
-        - **NexiScope Platform**: Active account required
         EOF
-        
+
         # Replace VERSION placeholder with actual version
         sed -i "s/VERSION/$VERSION/g" /tmp/release_notes.md
-        
+
         echo "📝 Release notes created with full details"
 
     - name: 🚀 Create GitHub Release
