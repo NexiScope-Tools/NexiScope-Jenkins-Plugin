@@ -66,36 +66,27 @@ jobs:
         # Show what we're looking for
         echo "🔎 Looking for: ## [${VERSION}]"
         grep -n "## \[${VERSION}\]" CHANGELOG.md || echo "⚠️  Version header not found in CHANGELOG"
-
+        
         # Get the section for this version from CHANGELOG
         # Extract from version header to next version header (or end of file)
-        NOTES=$(awk "/## \[${VERSION}\]/,/^## \[.*\]/ {
-          if (/^## \[${VERSION}\]/) next;
-          if (/^## \[.*\]/) exit;
-          print
-        }" CHANGELOG.md)
+        # The pattern handles both "## [VERSION]" and "## [VERSION] - DATE" formats
+        NOTES=$(awk "/^## \[${VERSION}\]/ { found=1; next } 
+                     found && /^## \[/ { exit } 
+                     found { print }" CHANGELOG.md)
 
         if [ -z "$NOTES" ]; then
           echo "⚠️  No release notes found for version ${VERSION}, using fallback"
           NOTES="Release version ${VERSION}
-        
+
         See [CHANGELOG.md](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md) for details."
         else
           echo "✅ Successfully extracted release notes ($(echo "$NOTES" | wc -l) lines)"
         fi
 
-        # Create release notes with header and footer
-        cat > /tmp/release_notes.md << 'EOF'
-        # NexiScope Jenkins Plugin
+        # Write release notes to file
+        echo "$NOTES" > /tmp/release_notes.md
         
-        Official Jenkins plugin for real-time CI/CD observability with the NexiScope Platform.
-        
-        ---
-        
-        EOF
-        
-        echo "$NOTES" >> /tmp/release_notes.md
-        
+        # Add installation instructions
         cat >> /tmp/release_notes.md << 'EOF'
         
         ---
@@ -113,14 +104,6 @@ jobs:
         java -jar jenkins-cli.jar -s http://your-jenkins-url/ install-plugin nexiscope-integration-VERSION.hpi
         ```
         
-        ## 📚 Documentation
-        
-        - 📖 [User Guide](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/USER_GUIDE.md)
-        - 🔧 [Developer Guide](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/DEVELOPER_GUIDE.md)
-        - 🏗️ [Architecture](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/ARCHITECTURE.md)
-        - 📋 [API Reference](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/docs/API_REFERENCE.md)
-        - 🔒 [Security Policy](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/SECURITY.md)
-        
         ## 🔐 Checksums
         
         SHA256 checksums are provided for all artifacts. Verify downloads with:
@@ -133,17 +116,6 @@ jobs:
         - **Jenkins**: 2.528.3 or later
         - **Java**: 21 or later
         - **NexiScope Platform**: Active account required
-        
-        ## 🆘 Support
-        
-        - 💬 [Discussions](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/discussions)
-        - 🐛 [Report Issues](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/issues)
-        - 📧 [Email Support](mailto:support@nexiscope.com)
-        - 📚 [Documentation](https://docs.nexiscope.com/jenkins-plugin)
-        
-        ---
-        
-        **Full Changelog**: https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md
         EOF
         
         # Replace VERSION placeholder with actual version
@@ -154,7 +126,7 @@ jobs:
     - name: 🚀 Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        name: NexiScope Jenkins Plugin v${{ steps.version.outputs.version }}
+        name: Release v${{ steps.version.outputs.version }}
         body_path: /tmp/release_notes.md
         files: |
           target/nexiscope-integration-${{ steps.version.outputs.version }}.hpi
