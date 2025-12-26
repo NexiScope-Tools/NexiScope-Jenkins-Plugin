@@ -39,8 +39,7 @@ import java.util.logging.Logger;
  * 
  * @author NexiScope Team
  * @since 1.0.0
- * @see ValidationResult
- * @see NexiScopeGlobalConfiguration
+ * @see io.nexiscope.jenkins.plugin.NexiScopeGlobalConfiguration
  */
 public class InputValidator {
     

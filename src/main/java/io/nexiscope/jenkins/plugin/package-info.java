@@ -50,7 +50,7 @@
  * <h3>Performance</h3>
  * <ul>
  *   <li>{@link io.nexiscope.jenkins.plugin.performance.MemoryOptimizer} - Memory optimization utilities</li>
- *   <li>{@link io.nexiscope.jenkins.plugin.performance.PerformanceMetrics} - Performance tracking</li>
+ *   <li>{@link io.nexiscope.jenkins.plugin.metrics.PerformanceMetrics} - Performance tracking</li>
  * </ul>
  * 
  * <h3>Error Handling</h3>
