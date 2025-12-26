@@ -6,17 +6,30 @@ Welcome to the NexiScope Jenkins Plugin documentation! This directory contains c
 
 ## 📖 For Users
 
-### [User Guide](USER_GUIDE.md)
-Complete guide for installing, configuring, and using the plugin.
+### [Installation Guide](INSTALLATION.md)
+Comprehensive installation instructions for all deployment scenarios.
 
 **Contents:**
-- Installation instructions
+- Installation methods (UI, CLI, Docker, Kubernetes)
+- Post-installation configuration
+- Updating the plugin
+- Troubleshooting installation issues
+
+**Start here if you're:** Installing the plugin for the first time.
+
+---
+
+### [User Guide](USER_GUIDE.md)
+Complete guide for configuring and using the plugin.
+
+**Contents:**
 - Configuration guide
 - Feature overview
+- Pipeline integration
 - Troubleshooting
 - FAQ
 
-**Start here if you're:** Installing the plugin for the first time or configuring it for your Jenkins instance.
+**Start here if you're:** Configuring the plugin or learning how to use its features.
 
 ---
 
@@ -95,6 +108,7 @@ Version history and release notes for all plugin versions.
 ```
 docs/
 ├── README.md              ← You are here
+├── INSTALLATION.md        ← Installation instructions
 ├── USER_GUIDE.md          ← For end users
 ├── DEVELOPER_GUIDE.md     ← For contributors
 ├── ARCHITECTURE.md        ← Technical deep dive
@@ -114,10 +128,11 @@ docs/
 
 | I want to... | Go to... |
 |--------------|----------|
-| Install the plugin | [User Guide - Installation](USER_GUIDE.md#installation) |
+| Install the plugin | [Installation Guide](INSTALLATION.md) |
 | Configure the plugin | [User Guide - Configuration](USER_GUIDE.md#configuration) |
 | Send custom events from pipelines | [API Reference - Pipeline DSL](API_REFERENCE.md#pipeline-dsl) |
 | Troubleshoot connection issues | [User Guide - Troubleshooting](USER_GUIDE.md#troubleshooting) |
+| Install in Docker/Kubernetes | [Installation Guide - Docker/K8s](INSTALLATION.md#method-4-docker-installation) |
 | Set up development environment | [Developer Guide - Development Environment](DEVELOPER_GUIDE.md#development-environment) |
 | Understand the architecture | [Architecture Guide](ARCHITECTURE.md) |
 | Contribute code | [Developer Guide - Contributing](DEVELOPER_GUIDE.md#contributing) |
