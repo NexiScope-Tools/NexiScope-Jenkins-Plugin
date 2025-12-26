@@ -60,8 +60,8 @@ jobs:
         
         if [ -z "$NOTES" ]; then
           NOTES="Release version ${VERSION}
-
-See [CHANGELOG.md](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md) for details."
+        
+        See [CHANGELOG.md](https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin/blob/main/CHANGELOG.md) for details."
         fi
         
         # Create release notes with header and footer
