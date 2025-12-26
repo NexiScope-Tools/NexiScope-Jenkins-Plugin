@@ -82,9 +82,7 @@ jobs:
         VERSION="${{ github.event.inputs.version }}"
         
         git add pom.xml CHANGELOG.md
-        git commit -m "chore: release version $VERSION
-
-[skip ci]"
+        git commit -m "chore: release version $VERSION" -m "[skip ci]"
         
         echo "✅ Committed release version"
     
@@ -93,9 +91,7 @@ jobs:
         VERSION="${{ github.event.inputs.version }}"
         
         # Create annotated tag
-        git tag -a "v$VERSION" -m "Release v$VERSION
-
-See CHANGELOG.md for details."
+        git tag -a "v$VERSION" -m "Release v$VERSION" -m "See CHANGELOG.md for details."
         
         # Push commit and tag
         git push origin main
@@ -128,9 +124,7 @@ See CHANGELOG.md for details."
         NEXT_VERSION="${{ github.event.inputs.next_version }}"
         
         git add pom.xml CHANGELOG.md
-        git commit -m "chore: prepare for next development iteration $NEXT_VERSION
-
-[skip ci]"
+        git commit -m "chore: prepare for next development iteration $NEXT_VERSION" -m "[skip ci]"
         
         git push origin main
         
