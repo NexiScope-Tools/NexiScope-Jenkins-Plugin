@@ -321,51 +321,111 @@ refactor: simplify error handling logic
 
 We follow [Semantic Versioning](https://semver.org/):
 
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backward compatible)
-- **PATCH**: Bug fixes
+- **MAJOR**: Breaking changes (e.g., 2.0.0)
+- **MINOR**: New features, backward compatible (e.g., 1.1.0)
+- **PATCH**: Bug fixes, backward compatible (e.g., 1.0.1)
 
-### Creating a Release
+For detailed versioning guidelines, see [`.github/VERSIONING.md`](../.github/VERSIONING.md).
 
-1. Update version in `pom.xml`:
-```xml
-<version>1.1.0</version>
+### Creating a Release (Automated)
+
+We use an automated GitHub Actions workflow for releases. This ensures consistency and eliminates manual errors.
+
+#### 🚀 Quick Release Process
+
+1. **Ensure your changes are committed and pushed to `main`**
+
+2. **Update CHANGELOG.md** with your changes under the `[Unreleased]` section:
+```markdown
+## [Unreleased]
+
+### Added
+- New feature X
+
+### Changed
+- Improved Y
+
+### Fixed
+- Bug Z
 ```
 
-2. Update `CHANGELOG.md` with release notes
+3. **Trigger the Version Bump workflow**:
+   - Go to: **Actions** → **Version Bump** → **Run workflow**
+   - Enter:
+     - **Version to release**: `1.1.0` (no 'v' prefix, no -SNAPSHOT)
+     - **Next development version**: `1.2.0-SNAPSHOT`
+   - Click **Run workflow**
 
-3. Commit changes:
+4. **The workflow automatically**:
+   - ✅ Updates `pom.xml` to release version (`1.1.0`)
+   - ✅ Updates `CHANGELOG.md` with release date
+   - ✅ Creates commit: `chore: release version 1.1.0`
+   - ✅ Creates and pushes git tag `v1.1.0`
+   - ✅ Updates `pom.xml` to next SNAPSHOT (`1.2.0-SNAPSHOT`)
+   - ✅ Prepares `CHANGELOG.md` for next release
+   - ✅ Creates commit: `chore: prepare for next development iteration`
+
+5. **Release workflow triggers automatically**:
+   - Builds the plugin
+   - Creates GitHub Release with tag `v1.1.0`
+   - Attaches artifacts:
+     - `nexiscope-integration-1.1.0.hpi`
+     - `nexiscope-integration-1.1.0.jar`
+     - SHA256 checksums
+
+6. **Done!** 🎉 Your release is published.
+
+#### 📋 Version Decision Guide
+
+**When to bump MAJOR (X.0.0)**:
+- Breaking API changes
+- Removed deprecated features
+- Major architectural changes
+- Requires Jenkins version upgrade
+
+**When to bump MINOR (1.X.0)**:
+- New features (backward-compatible)
+- New configuration options
+- New pipeline steps
+- Deprecated features (not removed)
+
+**When to bump PATCH (1.1.X)**:
+- Bug fixes
+- Security patches
+- Documentation updates
+- Performance improvements (no API changes)
+
+#### 🔧 Manual Release (Not Recommended)
+
+If you need to create a release manually (e.g., for hotfixes):
+
 ```bash
+# Update version
+mvn versions:set -DnewVersion=1.0.1
+
+# Update CHANGELOG.md manually
+
+# Commit and tag
 git add pom.xml CHANGELOG.md
-git commit -m "chore: prepare release v1.1.0"
-```
+git commit -m "chore: release version 1.0.1"
+git tag -a v1.0.1 -m "Release v1.0.1"
+git push origin main v1.0.1
 
-4. Create and push tag:
-```bash
-git tag -a v1.1.0 -m "Release v1.1.0"
-git push origin v1.1.0
+# Prepare next version
+mvn versions:set -DnewVersion=1.1.0-SNAPSHOT
+git add pom.xml
+git commit -m "chore: prepare for next development iteration"
+git push origin main
 ```
-
-5. Build release artifact:
-```bash
-mvn clean package
-```
-
-6. Create GitHub Release:
-   - Go to GitHub Releases
-   - Click "Draft a new release"
-   - Select the tag
-   - Add release notes from CHANGELOG
-   - Upload `target/nexiscope-integration.hpi`
-   - Publish release
 
 ### Jenkins Plugin Repository
 
 To publish to the Jenkins Update Center:
 
 1. Follow the [Jenkins plugin hosting guide](https://www.jenkins.io/doc/developer/publishing/)
-2. Set up your credentials
-3. Run: `mvn release:prepare release:perform`
+2. Set up your credentials in `~/.m2/settings.xml`
+3. Ensure you have commit access to the [Jenkins plugin repository](https://github.com/jenkinsci)
+4. The release workflow can be extended to automatically publish to Jenkins Update Center
 
 ---
 
