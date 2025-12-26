@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form" xmlns:t="/lib/hudson">
+    <l:layout title="NexiScope Integration Configuration" permission="${app.ADMINISTER}" norefresh="true">
+        <l:main-panel>
+            <div style="max-width: 1200px; margin: 0 auto; padding: 20px 40px;">
+                <!-- Header Section -->
+                <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); flex-shrink: 0;">
+                                <img src="${rootURL}/plugin/nexiscope-integration/images/48x48/nexiscope.png" 
+                                     alt="NexiScope" 
+                                     style="width: 36px; height: 36px; filter: brightness(0) invert(1);"
+                                     onerror="this.style.display='none';"/>
+                            </div>
+                            <div>
+                                <h1 style="margin: 0 0 6px 0; color: #111827; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
+                                    NexiScope Integration
+                                </h1>
+                                <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
+                                    Real-time observability and monitoring for your Jenkins pipelines
+                                </p>
+                            </div>
+                        </div>
+                        <div style="flex-shrink: 0; padding: 8px 16px; background: #f3f4f6; border-radius: 6px; border: 1px solid #e5e7eb;">
+                            <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Quick Start</div>
+                            <div style="font-size: 13px; color: #374151; margin-top: 4px;">1. Enter connection details → 2. Test → 3. Save</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success/Error Messages -->
+                <j:set var="saved" value="${request.getParameter('saved')}" />
+                <j:set var="error" value="${request.getParameter('error')}" />
+                <j:if test="${saved != null &amp;&amp; saved == 'true'}">
+                    <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; display: flex; align-items: center;">
+                        <span style="font-size: 18px; margin-right: 10px;">✓</span>
+                        <span>Configuration saved successfully!</span>
+                    </div>
+                </j:if>
+                <j:if test="${error != null &amp;&amp; !error.isEmpty()}">
+                    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; display: flex; align-items: center;">
+                        <span style="font-size: 18px; margin-right: 10px;">✗</span>
+                        <span>Error: ${error}</span>
+                    </div>
+                </j:if>
+
+                <!-- Configuration Form -->
+                <f:form method="post" action="configSubmit" name="config" style="background: #fff; border-radius: 6px; border: 1px solid #e0e0e0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <!-- Main Configuration Section -->
+                    <div style="padding: 0 20px 0 20px;">
+                        <f:block>
+                            <!-- Save action reference before overriding it -->
+                            <j:set var="action" value="${it}" />
+                            <!-- Ensure config exists, create if needed -->
+                            <j:set var="config" value="${it.config}" />
+                            <j:if test="${config == null}">
+                                <j:set var="config" value="${descriptor.newInstance()}" />
+                            </j:if>
+                            <!-- Set instance to config for field binding -->
+                            <j:set var="it" value="${config}" />
+                            <j:set var="instance" value="${config}" />
+                            <!-- Set descriptor to GlobalConfiguration's descriptor so fill methods work -->
+                            <j:set var="descriptor" value="${config.descriptor}" />
+                            <st:include page="/io/nexiscope/jenkins/plugin/NexiScopeGlobalConfiguration/config.jelly" />
+                        </f:block>
+                    </div>
+                    
+                    <!-- Test Connection Section (Prominent placement) -->
+                    <div style="padding: 0 20px 20px 20px;">
+                        <f:block>
+                            <!-- Test Connection Section -->
+                            <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                                    <div style="width: 40px; height: 40px; background: #0ea5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <span style="color: white; font-size: 20px;">🔌</span>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0; color: #0c4a6e; font-size: 16px; font-weight: 600;">
+                                            Test Connection
+                                        </h3>
+                                        <p style="margin: 4px 0 0 0; color: #075985; font-size: 13px;">
+                                            Verify your connection settings before saving
+                                        </p>
+                                    </div>
+                                    <div style="flex-shrink: 0;">
+                                        <!-- Custom test connection button with JavaScript -->
+                                        <button type="button" class="jenkins-button jenkins-button--primary" id="testConnectionBtn" style="padding: 10px 20px; font-weight: 500;">
+                                            Test Connection
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="testConnectionResult" style="display: none; margin-top: 12px; padding: 12px; border-radius: 6px; background: white;"></div>
+                                            <script type="text/javascript">
+                                                document.getElementById('testConnectionBtn').addEventListener('click', function() {
+                                                    var btn = this;
+                                                    var resultDiv = document.getElementById('testConnectionResult');
+                                                    
+                                                    // Get form values
+                                                    var platformUrl = document.querySelector('input[name="_.platformUrl"]');
+                                                    var authToken = document.querySelector('input[name="_.authToken"]');
+                                                    var instanceId = document.querySelector('input[name="_.instanceId"]');
+                                                    
+                                                    if (!platformUrl || !authToken || !instanceId) {
+                                                        resultDiv.innerHTML = '&lt;span style="color: red;"&gt;✗ ERROR: Could not find form fields&lt;/span&gt;';
+                                                        resultDiv.style.display = 'inline-block';
+                                                        return;
+                                                    }
+                                                    
+                                                    // Disable button and show progress
+                                                    btn.disabled = true;
+                                                    btn.textContent = 'Testing...';
+                                                    resultDiv.style.display = 'none';
+                                                    
+                                                    // Build URL with parameters
+                                                    var url = '${rootURL}/nexiscope/testConnection' +
+                                                        '?platformUrl=' + encodeURIComponent(platformUrl.value) +
+                                                        '&amp;authToken=' + encodeURIComponent(authToken.value) +
+                                                        '&amp;instanceId=' + encodeURIComponent(instanceId.value);
+                                                    
+                                                    // Make AJAX request
+                                                    fetch(url)
+                                                        .then(function(response) { return response.text(); })
+                                                        .then(function(html) {
+                                                            resultDiv.innerHTML = html;
+                                                            resultDiv.style.display = 'inline-block';
+                                                        })
+                                                        .catch(function(error) {
+                                                            resultDiv.innerHTML = '&lt;span style="color: red;"&gt;✗ ERROR: ' + error.message + '&lt;/span&gt;';
+                                                            resultDiv.style.display = 'inline-block';
+                                                        })
+                                                        .finally(function() {
+                                                            btn.disabled = false;
+                                                            btn.textContent = 'Test Connection';
+                                                        });
+                                                });
+                                            </script>
+                            </div>
+                        </f:block>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="border-top: 1px solid #e5e7eb; padding: 20px; background: #f9fafb; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="color: #6b7280; font-size: 13px;">
+                            💡 <strong>Tip:</strong> Test your connection before saving to ensure everything is configured correctly.
+                        </div>
+                        <f:submit value="Save Configuration" class="jenkins-button jenkins-button--primary" style="padding: 10px 24px; font-weight: 500;"/>
+                    </div>
+                </f:form>
+
+                <!-- Footer Info -->
+                <div style="margin-top: 30px; padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                        <div style="color: #6b7280; font-size: 13px;">
+                            <strong style="color: #374151;">NexiScope Integration</strong> v1.0.0-SNAPSHOT
+                        </div>
+                        <div style="display: flex; gap: 16px; font-size: 13px;">
+                            <a href="https://nexiscope.com/docs" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 500;">📚 Documentation</a>
+                            <a href="https://nexiscope.com/support" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 500;">💬 Support</a>
+                            <a href="https://github.com/NexiScope-Tools/NexiScope-Jenkins-Plugin" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 500;">🐙 GitHub</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>

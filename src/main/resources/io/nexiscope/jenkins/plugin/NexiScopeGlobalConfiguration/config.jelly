@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+    
+    <!-- Connection Settings (Required) -->
+    <f:section title="🔌 Connection Settings" description="Configure the connection to your NexiScope platform. These settings are required for the integration to work.">
+        <f:entry title="Enable Integration" field="enabled" description="Enable or disable the NexiScope integration">
+            <f:checkbox default="true"/>
+        </f:entry>
+        
+        <f:entry title="Platform URL" field="platformUrl" description="Your NexiScope platform URL (must start with https:// or wss://)">
+            <f:textbox checkUrl="${descriptor.checkUrl}" placeholder="https://platform.nexiscope.com"/>
+        </f:entry>
+        
+        <f:entry title="Authentication Token" field="authToken" description="Authentication token for connecting to NexiScope platform">
+            <f:password checkMethod="post" placeholder="Enter your authentication token"/>
+        </f:entry>
+        
+        <f:entry title="Instance ID" field="instanceId" description="Unique identifier for this Jenkins instance (used to distinguish multiple Jenkins instances)">
+            <f:textbox default="default-instance" placeholder="jenkins-prod"/>
+        </f:entry>
+    </f:section>
+    
+    <!-- Basic Settings -->
+    <f:section title="⚙️ Basic Settings" description="General configuration options for the plugin.">
+        <f:entry title="Log Level" field="logLevel" description="Plugin logging verbosity (INFO recommended for production)">
+            <j:set var="logLevelVal" value="${instance != null &amp;&amp; instance.logLevel != null ? instance.logLevel : 'INFO'}" />
+            <f:select>
+                <f:option value="INFO" selected="${logLevelVal == 'INFO'}">INFO - Normal logging</f:option>
+                <f:option value="WARNING" selected="${logLevelVal == 'WARNING'}">WARNING - Only warnings and errors</f:option>
+                <f:option value="SEVERE" selected="${logLevelVal == 'SEVERE'}">SEVERE - Only critical errors</f:option>
+            </f:select>
+        </f:entry>
+        
+        <f:entry title="Event Queue Size" field="queueMaxSize" description="Maximum number of events to queue when disconnected (recommended: 1000-10000)">
+            <f:number default="1000" min="10" max="100000"/>
+        </f:entry>
+    </f:section>
+    
+    <!-- Performance Settings -->
+    <f:section title="⚡ Performance Settings" description="Optimize plugin performance for high-volume environments.">
+        <f:optionalBlock title="Enable Event Batching" field="eventBatchingEnabled" inline="true" checked="true">
+            <f:entry title="Batch Size" field="batchSize" description="Number of events to batch together before sending (1-1000, recommended: 50)">
+                <f:number default="50" min="1" max="1000"/>
+            </f:entry>
+            
+            <f:entry title="Batch Timeout (ms)" field="batchTimeoutMs" description="Maximum time to wait before sending a batch (100-10000ms, recommended: 1000)">
+                <f:number default="1000" min="100" max="10000"/>
+            </f:entry>
+        </f:optionalBlock>
+    </f:section>
+    
+    <!-- Log Streaming (Optional) -->
+    <f:section title="📝 Log Streaming" description="Stream console logs from your builds to NexiScope in real-time. This is optional and can be enabled later.">
+        <f:optionalBlock title="Enable Log Streaming" field="logStreamingEnabled" inline="true">
+            <f:entry title="Log Level Filter" field="logLevelFilter" description="Minimum log level to stream">
+                <j:set var="logLevelFilterVal" value="${instance != null &amp;&amp; instance.logLevelFilter != null ? instance.logLevelFilter : 'INFO'}" />
+                <f:select>
+                    <f:option value="DEBUG" selected="${logLevelFilterVal == 'DEBUG'}">DEBUG - All logs</f:option>
+                    <f:option value="INFO" selected="${logLevelFilterVal == 'INFO'}">INFO - Info and above</f:option>
+                    <f:option value="WARN" selected="${logLevelFilterVal == 'WARN'}">WARN - Warnings and errors</f:option>
+                    <f:option value="ERROR" selected="${logLevelFilterVal == 'ERROR'}">ERROR - Errors only</f:option>
+                </f:select>
+            </f:entry>
+            
+            <f:entry title="Max Log Lines per Build" field="maxLogLines" description="Maximum number of log lines to stream per build">
+                <f:number default="1000" min="10" max="100000"/>
+            </f:entry>
+        </f:optionalBlock>
+    </f:section>
+    
+    <!-- Advanced Settings (Collapsed by default) -->
+    <f:advanced title="Advanced Settings">
+        
+        <!-- Certificate Pinning -->
+        <f:section title="🔒 Certificate Pinning" description="Pin SSL certificates for enhanced security. This prevents man-in-the-middle attacks by ensuring only specific certificates are accepted.">
+            <f:optionalBlock title="Enable Certificate Pinning" field="certificatePinningEnabled" inline="true">
+                <f:entry title="Certificate Pins" field="certificatePins" description="Certificate pinning configuration. Format: 'hostname1:hash1,hash2;hostname2:hash3'. Each hash is a SHA-256 fingerprint (64 hex characters).">
+                    <f:textarea placeholder="Example: platform.nexiscope.com:abc123...def456,xyz789...uvw012"/>
+                </f:entry>
+            </f:optionalBlock>
+        </f:section>
+        
+        <!-- Event Filtering -->
+        <f:section title="🎯 Event Filtering" description="Control which events are sent to NexiScope by filtering based on job names, branch names, and event types. Useful for reducing data volume or focusing on specific pipelines.">
+            <f:optionalBlock title="Enable Event Filtering" field="eventFilteringEnabled" inline="true">
+                <f:entry title="Job Include Patterns" field="jobIncludePatterns" description="Regex patterns for job names to include (one per line or comma-separated). If empty, all jobs are included.">
+                    <f:textarea placeholder="Example: ^production-.*, ^staging-.*"/>
+                </f:entry>
+                
+                <f:entry title="Job Exclude Patterns" field="jobExcludePatterns" description="Regex patterns for job names to exclude (one per line or comma-separated). Exclude takes precedence over include.">
+                    <f:textarea placeholder="Example: .*-test$, .*-dev$"/>
+                </f:entry>
+                
+                <f:entry title="Branch Include Patterns" field="branchIncludePatterns" description="Regex patterns for branch names to include (one per line or comma-separated). If empty, all branches are included.">
+                    <f:textarea placeholder="Example: ^main$, ^release/.*"/>
+                </f:entry>
+                
+                <f:entry title="Branch Exclude Patterns" field="branchExcludePatterns" description="Regex patterns for branch names to exclude (one per line or comma-separated). Exclude takes precedence over include.">
+                    <f:textarea placeholder="Example: ^feature/.*, ^hotfix/.*"/>
+                </f:entry>
+                
+                <f:entry title="Allowed Event Types" field="allowedEventTypes" description="Comma-separated list of event types to allow. If empty, all event types are allowed.">
+                    <f:textbox placeholder="Example: PIPELINE_STARTED,STAGE_STARTED,BUILD_COMPLETED"/>
+                </f:entry>
+                
+                <f:entry title="Blocked Event Types" field="blockedEventTypes" description="Comma-separated list of event types to block. Block takes precedence over allow.">
+                    <f:textbox placeholder="Example: LOG_LINE,FLOW_NODE"/>
+                </f:entry>
+            </f:optionalBlock>
+        </f:section>
+        
+    </f:advanced>
+    
+</j:jelly>

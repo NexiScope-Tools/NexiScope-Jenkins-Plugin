@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: ☕ Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+    
+    - name: 🔍 Verify Maven version
+      run: mvn --version
+    
+    - name: 🔨 Build with Maven
+      run: mvn clean compile -DskipTests
+    
+    - name: 🧪 Run tests
+      run: mvn test
+    
+    - name: 📊 Generate coverage report
+      run: mvn jacoco:report
+    
+    - name: 📈 Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: target/site/jacoco/jacoco.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: 📦 Package plugin
+      run: mvn package -DskipTests
+    
+    - name: 📚 Generate JavaDoc
+      run: mvn javadoc:javadoc
+    
+    - name: 📤 Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nexiscope-integration
+        path: |
+          target/*.hpi
+          target/*.jar
+        retention-days: 30
+    
+    - name: 📤 Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: target/surefire-reports/
+        retention-days: 30
+    
+    - name: 📊 Publish test results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: target/surefire-reports/*.xml
+        check_name: Test Results
+    
+    - name: ✅ Build summary
+      if: success()
+      run: |
+        echo "### ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
+        echo "- nexiscope-integration.hpi" >> $GITHUB_STEP_SUMMARY
+        echo "- nexiscope-integration.jar" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+

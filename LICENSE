@@ -1,0 +1,106 @@
+NexiScope Jenkins Plugin - Proprietary License
+
+Copyright (c) 2025 NexiScope. All rights reserved.
+
+TERMS AND CONDITIONS
+
+1. GRANT OF LICENSE
+
+   Subject to the terms and conditions of this License, NexiScope ("Licensor") 
+   grants you a limited, non-exclusive, non-transferable, revocable license to:
+
+   a) Use this software ("Plugin") in conjunction with the NexiScope Platform
+   b) Modify the Plugin for your internal use only
+   c) Distribute the Plugin only as part of your Jenkins installation
+
+2. RESTRICTIONS
+
+   You may NOT:
+
+   a) Sell, rent, lease, sublicense, or distribute the Plugin as a standalone product
+   b) Remove or modify any proprietary notices or labels on the Plugin
+   c) Use the Plugin with any platform other than NexiScope
+   d) Reverse engineer, decompile, or disassemble the Plugin (except as permitted by law)
+   e) Create derivative works for commercial distribution
+   f) Use the Plugin to compete with NexiScope or its services
+
+3. OWNERSHIP
+
+   The Plugin and all intellectual property rights therein are and shall remain 
+   the exclusive property of NexiScope. This License does not grant you any 
+   ownership rights to the Plugin.
+
+4. NEXISCOPE PLATFORM REQUIREMENT
+
+   This Plugin is designed exclusively for use with the NexiScope Platform. Use of 
+   this Plugin is subject to:
+
+   a) Your agreement with NexiScope for Platform services
+   b) Compliance with the NexiScope Platform Terms of Service
+   c) The Plugin may only be used within the NexiScope ecosystem
+
+5. CONTRIBUTIONS
+
+   If you submit any contributions (code, documentation, etc.) to this Plugin:
+
+   a) You grant NexiScope a perpetual, worldwide, non-exclusive, royalty-free 
+      license to use, modify, and distribute your contributions
+   b) You represent that you have the right to grant such license
+   c) NexiScope may incorporate your contributions into the Plugin at its discretion
+
+6. SUPPORT AND UPDATES
+
+   a) Support is provided to NexiScope Platform users as per their service agreement
+   b) Updates and new versions are provided at NexiScope's discretion
+   c) NexiScope may discontinue support at any time with notice
+
+7. WARRANTY DISCLAIMER
+
+   THE PLUGIN IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+   NEXISCOPE BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN 
+   AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
+   CONNECTION WITH THE PLUGIN OR THE USE OR OTHER DEALINGS IN THE PLUGIN.
+
+8. LIMITATION OF LIABILITY
+
+   IN NO EVENT SHALL NEXISCOPE BE LIABLE FOR ANY SPECIAL, INCIDENTAL, INDIRECT, 
+   OR CONSEQUENTIAL DAMAGES WHATSOEVER (INCLUDING, WITHOUT LIMITATION, DAMAGES 
+   FOR LOSS OF BUSINESS PROFITS, BUSINESS INTERRUPTION, LOSS OF BUSINESS 
+   INFORMATION, OR ANY OTHER PECUNIARY LOSS) ARISING OUT OF THE USE OF OR 
+   INABILITY TO USE THE PLUGIN, EVEN IF NEXISCOPE HAS BEEN ADVISED OF THE 
+   POSSIBILITY OF SUCH DAMAGES.
+
+9. TERMINATION
+
+   a) This License is effective until terminated
+   b) Your rights under this License will terminate automatically if you fail 
+      to comply with any of its terms
+   c) Upon termination, you must cease all use of the Plugin and destroy all copies
+   d) NexiScope may terminate this License at any time for any reason
+
+10. GOVERNING LAW
+
+    This License shall be governed by and construed in accordance with the laws 
+    of the jurisdiction in which NexiScope is registered, without regard to its 
+    conflict of law provisions.
+
+11. ENTIRE AGREEMENT
+
+    This License constitutes the entire agreement between you and NexiScope 
+    concerning the Plugin and supersedes all prior agreements and understandings.
+
+12. CONTACT
+
+    For questions about this License, contact:
+    
+    NexiScope
+    Email: legal@nexiscope.com
+    Website: https://nexiscope.com
+
+---
+
+BY USING THIS PLUGIN, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS LICENSE, 
+UNDERSTAND IT, AND AGREE TO BE BOUND BY ITS TERMS AND CONDITIONS.
+

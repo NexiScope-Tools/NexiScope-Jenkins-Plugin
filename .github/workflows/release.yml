@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: ☕ Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+    
+    - name: 🏷️ Get version from tag
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📋 Version: $VERSION"
+    
+    - name: 🔨 Build plugin
+      run: mvn clean package -DskipTests
+    
+    - name: 📦 Prepare release artifacts
+      run: |
+        cd target
+        VERSION=${{ steps.version.outputs.version }}
+        cp nexiscope-integration.hpi nexiscope-integration-${VERSION}.hpi
+        cp nexiscope-integration.jar nexiscope-integration-${VERSION}.jar
+        
+        # Create checksums
+        sha256sum nexiscope-integration-${VERSION}.hpi > nexiscope-integration-${VERSION}.hpi.sha256
+        sha256sum nexiscope-integration-${VERSION}.jar > nexiscope-integration-${VERSION}.jar.sha256
+        
+        echo "✅ Release artifacts prepared"
+        ls -lh nexiscope-integration-${VERSION}.*
+    
+    - name: 📝 Extract release notes
+      id: release_notes
+      run: |
+        VERSION=${{ steps.version.outputs.version }}
+        
+        # Get the section for this version
+        NOTES=$(awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | sed '1d;$d')
+        
+        if [ -z "$NOTES" ]; then
+          NOTES="Release version ${VERSION}"
+        fi
+        
+        # Save to file for GitHub release
+        echo "$NOTES" > /tmp/release_notes.md
+        
+        echo "📝 Release notes extracted"
+    
+    - name: 🚀 Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release v${{ steps.version.outputs.version }}
+        body_path: /tmp/release_notes.md
+        files: |
+          target/nexiscope-integration-${{ steps.version.outputs.version }}.hpi
+          target/nexiscope-integration-${{ steps.version.outputs.version }}.jar
+          target/nexiscope-integration-${{ steps.version.outputs.version }}.hpi.sha256
+          target/nexiscope-integration-${{ steps.version.outputs.version }}.jar.sha256
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: ✅ Release summary
+      run: |
+        echo "### 🚀 Release v${{ steps.version.outputs.version }} Published" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
+        echo "- nexiscope-integration-${{ steps.version.outputs.version }}.hpi" >> $GITHUB_STEP_SUMMARY
+        echo "- nexiscope-integration-${{ steps.version.outputs.version }}.jar" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Release is now available on GitHub Releases"
+
