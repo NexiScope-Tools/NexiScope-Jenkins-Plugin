@@ -7,6 +7,11 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   build:
     name: Build and Test
@@ -33,17 +38,6 @@ jobs:
     
     - name: 🧪 Run tests
       run: mvn test
-    
-    - name: 📊 Generate coverage report
-      run: mvn jacoco:report
-    
-    - name: 📈 Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: target/site/jacoco/jacoco.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
     
     - name: 📦 Package plugin
       run: mvn package -DskipTests
